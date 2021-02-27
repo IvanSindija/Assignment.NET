@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using PublicAddressBook.Dal;
 using PublicAddressBook.Handlers.impl;
 using PublicAddressBook.Handlers.intf;
+using PublicAddressBook.Hubs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,10 +29,12 @@ namespace PublicAddressBook
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<PublicAddressBookContext>(/*options =>
-                options.UseNpgsql(Configuration.GetConnectionString("PublicAddressBookContext"))*/);
+            services.AddDbContext<PublicAddressBookContext>(options =>
+                //options.UseNpgsql(Configuration.GetConnectionString("PublicAddressBookContext")));
+                options.UseInMemoryDatabase("test"));
             services.AddScoped<IPublicAddressBookHandler, PublicAddressBookHandler>();
             services.AddControllers();
+            services.AddSignalR();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -49,6 +52,7 @@ namespace PublicAddressBook
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHub<SignalRHub>("/SignalRUpdate");
             });
         }
     }

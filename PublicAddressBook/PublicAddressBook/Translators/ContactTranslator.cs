@@ -11,7 +11,7 @@ namespace PublicAddressBook.Translators
     {
         public static Contact Translate(ContactViewModel vm)
         {
-            if(vm == null)
+            if (vm == null)
             {
                 throw new Exception("Contact is null");
             }
@@ -23,7 +23,7 @@ namespace PublicAddressBook.Translators
                     Address = vm.Address,
                     DateOfBirth = vm.DateOfBirth
                 };
-                if(vm.PhoneNumbers!=null && vm.PhoneNumbers.Count > 0)
+                if (vm.PhoneNumbers != null && vm.PhoneNumbers.Count > 0)
                 {
                     dbModel.PhoneNumbers = new List<PhoneNumber>();
                     foreach (var number in vm.PhoneNumbers)
@@ -40,24 +40,25 @@ namespace PublicAddressBook.Translators
         {
             if (contactDb != null)
             {
-                    var contactsVM = new ContactViewModel()
+                var contactsVM = new ContactViewModel()
+                {
+                    Id = contactDb.Id,
+                    Address = contactDb.Address,
+                    DateOfBirth = contactDb.DateOfBirth,
+                    Name = contactDb.Name
+                };
+                if (contactDb.PhoneNumbers != null && contactDb.PhoneNumbers.Count > 0)
+                {
+                    contactsVM.PhoneNumbers = new List<PhoneNumberViewModel>();
+                    foreach (var phoneNumber in contactDb.PhoneNumbers)
                     {
-                        Id = contactDb.Id,
-                        Address = contactDb.Address,
-                        DateOfBirth = contactDb.DateOfBirth,
-                        Name = contactDb.Name
-                    };
-                    if (contactDb.PhoneNumbers != null && contactDb.PhoneNumbers.Count > 0)
-                    {
-                        foreach (var phoneNumber in contactDb.PhoneNumbers)
+                        contactsVM.PhoneNumbers.Add(new PhoneNumberViewModel()
                         {
-                            contactsVM.PhoneNumbers.Add(new PhoneNumberViewModel()
-                            {
-                                Id = phoneNumber.Id,
-                                Number = phoneNumber.Number
-                            });
-                        }
+                            Id = phoneNumber.Id,
+                            Number = phoneNumber.Number
+                        });
                     }
+                }
 
                 return contactsVM;
             }
@@ -69,10 +70,10 @@ namespace PublicAddressBook.Translators
 
         public static List<ContactViewModel> TranslateModel(List<Contact> contactsDb)
         {
-            if(contactsDb!=null && contactsDb.Count > 0)
+            if (contactsDb != null && contactsDb.Count > 0)
             {
                 var contactsVMList = new List<ContactViewModel>();
-                foreach(var contact in contactsDb)
+                foreach (var contact in contactsDb)
                 {
                     var contactsVM = TranslateModel(contact);
                     contactsVMList.Add(contactsVM);

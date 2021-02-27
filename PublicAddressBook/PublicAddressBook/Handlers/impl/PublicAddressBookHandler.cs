@@ -1,6 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using PublicAddressBook.Dal;
 using PublicAddressBook.Handlers.intf;
+using PublicAddressBook.Hubs;
 using PublicAddressBook.Translators;
 using PublicAddressBook.ViewModels;
 using System;
@@ -14,12 +16,40 @@ namespace PublicAddressBook.Handlers.impl
     {
         private readonly PublicAddressBookContext dbContext;
         private readonly int pageSize;
-        public PublicAddressBookHandler(PublicAddressBookContext dbContext)
+        private readonly IHubContext<SignalRHub> hub;
+        public PublicAddressBookHandler(PublicAddressBookContext dbContext, IHubContext<SignalRHub> hub)
         {
             this.dbContext = dbContext;
-            ///TODO: Get from appsettings
+            this.hub = hub;
             pageSize = 10;
         }
+
+        private async Task UpdateContactInfoAsync(int contactId)
+        {
+            var contact = await dbContext.Contacts.Include(c => c.PhoneNumbers).FirstOrDefaultAsync(c => c.Id == contactId);
+            var contactVM = ContactTranslator.TranslateModel(contact);
+
+            hub.Clients.All.SendAsync("UpdateContactInfo", contactVM);
+        }
+
+        private async Task DeleteContactInfoAsync(int contactId)
+        {
+            hub.Clients.All.SendAsync("DeleteContactInfoAsync", contactId);
+        }
+
+        private async Task DeletePhoneNumberAsync(int phoneNumberId)
+        {
+            hub.Clients.All.SendAsync("DeletePhoneNumberAsync", phoneNumberId);
+        }
+
+        private async Task UpdatePhoneNumberInfoAsync(int phoneNumberId)
+        {
+            var phoneNumber = await dbContext.PhoneNumbers.FirstOrDefaultAsync(c => c.Id == phoneNumberId);
+            var phoneNumberVM = new PhoneNumberViewModel() { Id=phoneNumber.Id, Number = phoneNumber.Number};
+
+            hub.Clients.All.SendAsync("UpdatePhoneNumberInfoAsync", phoneNumberVM);
+        }
+
         public async Task AddContact(ContactViewModel contactVM)
         {
             try
@@ -27,6 +57,7 @@ namespace PublicAddressBook.Handlers.impl
                 var contact = ContactTranslator.Translate(contactVM);
                 dbContext.Contacts.Add(contact);
                 await dbContext.SaveChangesAsync();
+                await UpdateContactInfoAsync(contact.Id);
             }
             catch(Exception ex)
             {
@@ -45,6 +76,7 @@ namespace PublicAddressBook.Handlers.impl
                 };
                 await dbContext.PhoneNumbers.AddAsync(phoneNumber);
                 await dbContext.SaveChangesAsync();
+                await UpdateContactInfoAsync(contactId);
             }
             catch(Exception ex)
             {
@@ -61,6 +93,7 @@ namespace PublicAddressBook.Handlers.impl
                 {
                     dbContext.Entry(contact).State = EntityState.Deleted;
                     await dbContext.SaveChangesAsync();
+                    await DeleteContactInfoAsync(id);
                 }
 
             }catch(Exception ex)
@@ -78,6 +111,7 @@ namespace PublicAddressBook.Handlers.impl
                 {
                     dbContext.Entry(phoneNumbers).State = EntityState.Deleted;
                     await dbContext.SaveChangesAsync();
+                    await DeletePhoneNumberAsync(id);
                 }
 
             }
@@ -121,13 +155,17 @@ namespace PublicAddressBook.Handlers.impl
         {
             try
             {
-                var contactDb = dbContext.Contacts.FirstOrDefault(n => n.Id == contactVM.Id);
-                if (contactDb != null)
+                if (contactVM.Id.HasValue)
                 {
-                    contactDb.Name = contactVM.Name;
-                    contactDb.DateOfBirth = contactVM.DateOfBirth;
-                    contactDb.Address = contactVM.Address;
-                    await dbContext.SaveChangesAsync();
+                    var contactDb = dbContext.Contacts.FirstOrDefault(n => n.Id == contactVM.Id);
+                    if (contactDb != null)
+                    {
+                        contactDb.Name = contactVM.Name;
+                        contactDb.DateOfBirth = contactVM.DateOfBirth;
+                        contactDb.Address = contactVM.Address;
+                        await dbContext.SaveChangesAsync();
+                        await UpdateContactInfoAsync(contactVM.Id.Value);
+                    }
                 }
             }
             catch (Exception ex)
@@ -140,11 +178,15 @@ namespace PublicAddressBook.Handlers.impl
         {
             try
             {
-                var numberDb = dbContext.PhoneNumbers.FirstOrDefault(n => n.Id == numberVM.Id);
-                if (numberDb != null)
+                if (numberVM.Id.HasValue)
                 {
-                    numberDb.Number = numberVM.Number;
-                    await dbContext.SaveChangesAsync();
+                    var numberDb = dbContext.PhoneNumbers.FirstOrDefault(n => n.Id == numberVM.Id);
+                    if (numberDb != null)
+                    {
+                        numberDb.Number = numberVM.Number;
+                        await dbContext.SaveChangesAsync();
+                        await UpdatePhoneNumberInfoAsync(numberVM.Id.Value);
+                    }
                 }
             }catch(Exception ex)
             {

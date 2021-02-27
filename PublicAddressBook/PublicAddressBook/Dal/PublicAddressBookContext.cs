@@ -10,9 +10,9 @@ namespace PublicAddressBook.Dal
 {
     public class PublicAddressBookContext : DbContext
     {
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-            => optionsBuilder.UseNpgsql();
-        public DbSet<Contact> Contacts { get; set; }
+        public PublicAddressBookContext(DbContextOptions<PublicAddressBookContext> options)
+            : base(options) { }
+          public DbSet<Contact> Contacts { get; set; }
         public DbSet<PhoneNumber> PhoneNumbers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
