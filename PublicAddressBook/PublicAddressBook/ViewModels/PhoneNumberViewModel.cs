@@ -8,6 +8,7 @@ namespace PublicAddressBook.ViewModels
     public class PhoneNumberViewModel
     {
         public int? Id { get; set; }
+        public int? ContactId { get; set; }
         public string Number { get; set; }
     }
 }

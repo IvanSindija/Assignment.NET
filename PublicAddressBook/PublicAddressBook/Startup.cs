@@ -30,9 +30,10 @@ namespace PublicAddressBook
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<PublicAddressBookContext>(options =>
-                //options.UseNpgsql(Configuration.GetConnectionString("PublicAddressBookContext")));
-                options.UseInMemoryDatabase("test"));
-            services.AddScoped<IPublicAddressBookHandler, PublicAddressBookHandler>();
+                options.UseNpgsql(Configuration.GetConnectionString("PublicAddressBookContext")));
+                //options.UseInMemoryDatabase("test"));
+            services.AddScoped<IContactHandler, ContactHandler>();
+            services.AddScoped<IPhoneNumberHandler, PhoneNumberHandler>();
             services.AddControllers();
             services.AddSignalR();
         }
@@ -44,9 +45,9 @@ namespace PublicAddressBook
             {
                 app.UseDeveloperExceptionPage();
             }
-
+            app.UseStaticFiles();
             app.UseRouting();
-
+            
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

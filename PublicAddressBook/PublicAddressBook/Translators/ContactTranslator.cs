@@ -52,11 +52,7 @@ namespace PublicAddressBook.Translators
                     contactsVM.PhoneNumbers = new List<PhoneNumberViewModel>();
                     foreach (var phoneNumber in contactDb.PhoneNumbers)
                     {
-                        contactsVM.PhoneNumbers.Add(new PhoneNumberViewModel()
-                        {
-                            Id = phoneNumber.Id,
-                            Number = phoneNumber.Number
-                        });
+                        contactsVM.PhoneNumbers.Add(PhoneNumberTranslator.Translate(phoneNumber));
                     }
                 }
 

@@ -7,49 +7,90 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-
 namespace PublicAddressBook.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class PublicAddressBookController : ControllerBase
     {
-        private readonly IPublicAddressBookHandler publicAddressBookHandler;
-        public PublicAddressBookController(IPublicAddressBookHandler publicAddressBookHandler)
+        private readonly IContactHandler _contactHandler;
+        private readonly IPhoneNumberHandler _phoneNumberHandler;
+        public PublicAddressBookController(IContactHandler contactHandler, IPhoneNumberHandler phoneNumberHandler)
         {
-            this.publicAddressBookHandler = publicAddressBookHandler;
+            this._contactHandler = contactHandler;
+            this._phoneNumberHandler = phoneNumberHandler;
         }
-        // GET: api/<PublicAddressBookControlle>
         [HttpGet]
+        [Route("Contact")]
         public async Task<IEnumerable<ContactViewModel>> Get(int? page)
         {
-            return await publicAddressBookHandler.GetContact(page??0);
+            return await _contactHandler.GetContact(page??0);
         }
 
-        // GET api/<PublicAddressBookControlle>/5
-        [HttpGet("{id}")]
-        public async Task<ContactViewModel> Get(int id)
+        [HttpGet]
+        [Route("Contact/{id}")]
+        public async Task<ContactViewModel> ContactGet(int id)
         {
-            return await publicAddressBookHandler.GetContactById(id);
+            return await _contactHandler.GetContactById(id);
         }
 
-        // POST api/<PublicAddressBookControlle>
         [HttpPost]
-        public void Post([FromBody] string value)
+        [Route("AddContact")]
+        public async Task AddContactPost([FromBody] ContactViewModel value)
         {
+            await _contactHandler.AddContact(value);
         }
 
-        // PUT api/<PublicAddressBookControlle>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        [HttpPost]
+        [Route("UpdateContact")]
+        public async Task UpdateContactPost([FromBody] ContactViewModel value)
         {
+            await _contactHandler.UpdateContact(value);
         }
 
-        // DELETE api/<PublicAddressBookControlle>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
+        [HttpPost]
+        [Route("DeleteContact")]
+        public async Task DeleteContactPost([FromBody] int contactId)
         {
+            await _contactHandler.DeleteContact(contactId);
+        }
+
+        [HttpGet]
+        [Route("PhoneNumber")]
+        public async Task<IEnumerable<ContactViewModel>> PhoneNumberGet(int? page)
+        {
+            return await _contactHandler.GetContact(page ?? 0);
+        }
+
+        [HttpGet]
+        [Route("PhoneNumber/{id}")]
+        public async Task<PhoneNumberViewModel> GetPhoneNumber(int id)
+        {
+            return await _phoneNumberHandler.GetPhoneNumberById(id);
+        }
+
+        [HttpPost]
+        [Route("AddPhoneNumber")]
+        public async Task AddPhoneNumbertPost([FromBody] PhoneNumberViewModel value)
+        {
+            if (value.ContactId.HasValue)
+            {
+                await _phoneNumberHandler.AddPhoneNumber(value.ContactId.Value, value.Number);
+            }
+        }
+
+        [HttpPost]
+        [Route("UpdatePhoneNumber")]
+        public async Task UpdateContactPost([FromBody] PhoneNumberViewModel value)
+        {
+            await _phoneNumberHandler.UpdatePhoneNumber(value);
+        }
+
+        [HttpPost]
+        [Route("DeletePhoneNumber")]
+        public async Task DeletePhoneNumberPost([FromBody] int phoneNumberId)
+        {
+            await _phoneNumberHandler.DeletePhoneNumber(phoneNumberId);
         }
     }
 }

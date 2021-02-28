@@ -6,16 +6,10 @@ using System.Threading.Tasks;
 
 namespace PublicAddressBook.Handlers.intf
 {
-    public interface IPublicAddressBookHandler
+    public interface IPhoneNumberHandler
     {
-        public Task<List<ContactViewModel>> GetContact(int page);
-        public Task<ContactViewModel> GetContactById(int id);
-        public Task AddContact(ContactViewModel user);
-
-        public Task UpdateContact(ContactViewModel user);
-
-        public Task DeleteContact(int id);
-
+        public Task<List<PhoneNumberViewModel>> GetPhoneNumber(int page);
+        public Task<PhoneNumberViewModel> GetPhoneNumberById(int phoneNumberId);
         public Task AddPhoneNumber(int contactId, string number);
 
         public Task UpdatePhoneNumber(PhoneNumberViewModel number);
